@@ -32,3 +32,29 @@ def client_list(request):
     elif request.method == 'DELETE':
         Client.objects.all().delete()
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+
+
+@csrf_exempt
+def client_detail(request, pk):
+    try:
+        client = Client.objects.get(pk=pk)
+    except Client.DoesNotExist:
+        return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        client_serializer = ClientSerializer(client)
+        return JsonResponse(client_serializer.data)
+
+    elif request.method == 'PUT':
+        client_data = JSONParser().parse(request)
+        client_serializer = ClientSerializer(client, data=client_data)
+        if client_serializer.is_valid():
+            client_serializer.save()
+            return JsonResponse(client_serializer.data)
+        return JsonResponse(
+            client_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+
+    elif request.method == 'DELETE':
+        client.delete()
+        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
